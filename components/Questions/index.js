@@ -28,7 +28,6 @@ class Questions extends Component {
     try {
       const results = axios.get(url);
       results.then((resp) => {
-        console.log(resp.data.results);
         const decoratedQuestion = this.decorateQuestions(resp.data.results); 
         this.setState({ results: decoratedQuestion });
       });
