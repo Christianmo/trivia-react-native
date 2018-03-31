@@ -1,7 +1,18 @@
 import React, { Component } from 'react';
-import axios  from 'axios';
-import { StyleSheet, Text, View, FlatList } from 'react-native';
+import { connect } from 'react-redux';
+import { StyleSheet, Text, View, Button, FlatList } from 'react-native';
 import Question from './Question';
+import { fetchQuestion } from '../../redux/modules/questions';
+
+const mapStateToProps = state => ({
+  data: state,
+});
+
+const mapDispatchToProps = dispatch => ({
+  handleFetch(url) {
+    dispatch(fetchQuestion(url));
+  },
+});
 
 const styles = StyleSheet.create({
   container: {
@@ -16,57 +27,40 @@ const styles = StyleSheet.create({
 
 class Questions extends Component {
   state = {
-    results: [],
-  }
-  
-  componentDidMount() {
-    const url = 'https://opentdb.com/api.php?amount=10&category=18&difficulty=medium';
-    this.fetchQuestion(url)
-  }
-  
-  fetchQuestion = (url) => {
-    try {
-      const results = axios.get(url);
-      results.then((resp) => {
-        const decoratedQuestion = this.decorateQuestions(resp.data.results); 
-        this.setState({ results: decoratedQuestion });
-      });
-    } catch (err) {
-      return err;
-    }
+    results: 0,
   }
 
-  decorateQuestions = (questionsArr) => {
-    const list = questionsArr.map((question) => {
-      const answersLength = question.incorrect_answers.length + 1;
-      const i = Math.floor(Math.random() * answersLength);
-      const answers = [...question.incorrect_answers];
+  componentDidMount() {
+    const url = 'https://opentdb.com/api.php?amount=10&category=18&difficulty=medium';
+    this.props.handleFetch(url);
+  }
   
-      answers.splice(i, 0, question.correct_answer);
-  
-      return {
-        ...question,
-        answers,
-        is_correct_answer: false,
-        correct_answer_index: i,
-      };
-    });
-  
-    return list;
+  showResults = () => {
+    const { data } = this.props;
+    const correctAnswers = data.filter(item => item.is_correct_answer);
+    this.setState({ results: correctAnswers.length });
   }
 
   render() {
+    const { data } = this.props;
+    const { results } = this.state;
+
     return (
       <View style={styles.container}>
         <Text style={styles.title}>Trivia</Text>
         <FlatList
-          data={this.state.results}
+          data={data}
           keyExtractor={(item, index) => index}
-          renderItem={({item, index}) => <Question question={item} index={index} />}
+          renderItem={({item, index}) => <Question question={item} questionIndex={index} />}
+        />
+        <Text style={styles.title}>{`${results} correct answers`}</Text>
+        <Button
+          onPress={this.showResults} 
+          title="Get Results" 
         />
       </View>
     );
   }
 }
 
-export default Questions;
+export default connect(mapStateToProps, mapDispatchToProps)(Questions);
