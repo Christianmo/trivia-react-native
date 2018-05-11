@@ -16,7 +16,7 @@ const mapDispatchToProps = dispatch => ({
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 50,
+    marginTop: 20,
   },
   title: {
     fontSize: 25,
